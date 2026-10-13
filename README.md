@@ -89,7 +89,8 @@ A language-learning project might use:
 Terminal selections are tied to screen rows, so anything that moves text while you select changes what is selected. Marginalia avoids moving text:
 
 - The bar sits beside the selected line when it fits, or on a blank line under it.
-- Between tight list items, where there is no blank line, the bar takes its own row under the selected item. It is added only after your selection settles, and when you select again the old row turns blank instead of disappearing, so nothing above your new selection shifts.
+- Between tight list items, where there is no blank line, the bar takes its own row under the selected item. It is added only after your selection settles.
+- When you select again, the old bar row is reused if it sits right above your new selection: the bar moves into it, just above the selected line. Otherwise the old row turns blank instead of disappearing, so nothing above your new selection shifts. Blank rows below the selection are removed at once.
 - The terminal does not report a plain click outside the selection, so the bar closes with `✕`, when you type, press a button or start a new selection, or by itself 15 seconds after it appears.
 
 ## For theme mods
