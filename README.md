@@ -2,11 +2,7 @@
 
 Select text in a Claude Code conversation and act on it right there: quote it into your prompt, ask about it, turn it into a task, or keep it for later.
 
-```
-  - Cats sleep 12 to 16 hours a day, saving energy for short bursts of hunting.
-  [ ❝ Quote ] [ ♥ Remember ] [ + Task ] [ ⋯ ] [ ✕ ]  9 words selected
-  - Cats are obligate carnivores and need taurine from animal tissue.
-```
+<img width="1161" height="120" alt="image" src="https://github.com/user-attachments/assets/0ffd14ac-314f-437a-bc9a-68fe86fff42f" />
 
 ## What it does
 
@@ -20,14 +16,13 @@ Select text with the mouse anywhere in the transcript. A moment after you let go
 | `⋯` | More: Explain, Deeper, Redo, Anki, Define, Wrong, Copy clean. |
 | `✕` | Closes the bar. |
 
+<img width="1221" height="115" alt="image" src="https://github.com/user-attachments/assets/747afb7a-0c9a-4983-a77f-cf3bf6b3e7c4" />
+
+<img width="1305" height="244" alt="image" src="https://github.com/user-attachments/assets/dc2544cf-e922-469e-bcfc-f4be47e087fa" />
+
 Click `⋯` and the other actions open on a second line:
 
-```
-  - Cats sleep 12 to 16 hours a day, saving energy for short bursts of hunting.
-  [ ❝ Quote ] [ ♥ Remember ] [ + Task ] [ ⋯ less ] [ ✕ ]  9 words selected
-  [ ? Explain ] [ ↳ Deeper ] [ ✎ Redo ] [ ▤ Anki ] [ ≡ Define ] [ ✗ Wrong ] [ ⧉ Copy clean ]
-  - Cats are obligate carnivores and need taurine from animal tissue.
-```
+<img width="1074" height="183" alt="image" src="https://github.com/user-attachments/assets/ff6b71a3-3f57-4d85-aeea-d20193a87d2c" />
 
 | More action | What happens |
 |---|---|
