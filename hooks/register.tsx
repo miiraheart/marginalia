@@ -192,7 +192,7 @@ async function runAction($: EngineInterface, action: MarginaliaAction) {
   }
   await hideBar($, sel.text.trim())
   if (action === 'remember') {
-    await $.prompt.submit({ text: rememberPrompt(sel.text) })
+    await $.prompt.submit({ text: rememberPrompt(sel.text), asUser: true })
     $.ui.toast('♥ Sent to remember')
     return
   }
@@ -210,17 +210,16 @@ async function runAction($: EngineInterface, action: MarginaliaAction) {
   if (action === 'define') {
     const command = await $.env.get('MARGINALIA_DEFINE_CMD')
     if (command) {
+      $.ui.toast(`≡ Looking up ${defineWords(sel.text).join(' ')}…`)
       const found = await $.process.run([command, ...defineWords(sel.text)], { timeoutMs: 20000 }).catch(() => undefined)
       if (found?.exitCode === 0 && found.stdout.trim()) {
         $.ui.toast(found.stdout.trim().split('\n').slice(0, 12).join('\n'), { timeoutMs: 15000 })
         return
       }
     }
-    await $.prompt.submit({ text: `Define this, with its gender and one example sentence:\n\n> ${cleanSelection(sel.text)}` })
-    return
   }
   const prompt = askPrompt(action, sel.text)
-  if (prompt) await $.prompt.submit({ text: prompt })
+  if (prompt) await $.prompt.submit({ text: prompt, asUser: true })
 }
 
 async function press($: EngineInterface, args: MarginaliaPress): Promise<boolean> {

@@ -75,6 +75,7 @@ const ASK: Partial<Record<QuoteAction, string>> = {
   explain: 'Explain this passage more simply, in a few lines:',
   deeper: 'Go deeper on this passage, with one concrete example:',
   redo: "This passage didn't click. Rewrite it another way:",
+  define: 'Define this in a few lines with one example sentence. If its language gives words a gender, include it:',
   anki: 'Turn this passage into an Anki card the way this project makes cards, then confirm in one line:',
   wrong: 'This passage looks wrong or unclear. Check it and fix it:',
 }
