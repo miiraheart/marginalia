@@ -1,0 +1,18 @@
+{
+  "name": "marginalia",
+  "owner": {
+    "name": "Miira",
+    "url": "https://github.com/miiraheart"
+  },
+  "plugins": [
+    {
+      "name": "marginalia",
+      "description": "Select text in the conversation, then quote it into your prompt, pin it, ask about it or turn it into a task.",
+      "source": { "source": "github", "repo": "miiraheart/marginalia" },
+      "version": "0.1.0",
+      "category": "productivity",
+      "tags": ["mod", "selection", "quote", "pin", "notes"]
+    }
+  ],
+  "description": "Marginalia: act on text you select in Claude Code."
+}
