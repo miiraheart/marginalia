@@ -20,6 +20,25 @@ Select text with the mouse anywhere in the transcript. A moment after you let go
 | `⋯` | More: Explain, Deeper, Redo, Anki, Define, Wrong, Copy clean. |
 | `✕` | Closes the bar. |
 
+Click `⋯` and the other actions open on a second line:
+
+```
+  - Cats sleep 12 to 16 hours a day, saving energy for short bursts of hunting.
+  [ ❝ Quote ] [ ♥ Remember ] [ + Task ] [ ⋯ less ] [ ✕ ]  9 words selected
+  [ ? Explain ] [ ↳ Deeper ] [ ✎ Redo ] [ ▤ Anki ] [ ≡ Define ] [ ✗ Wrong ] [ ⧉ Copy clean ]
+  - Cats are obligate carnivores and need taurine from animal tissue.
+```
+
+| More action | What happens |
+|---|---|
+| `? Explain` | Asks Claude to explain the passage more simply. |
+| `↳ Deeper` | Asks Claude to go deeper, with one concrete example. |
+| `✎ Redo` | Asks Claude to rewrite the passage another way. |
+| `▤ Anki` | Asks Claude to turn the passage into an Anki card, the way the project makes cards. |
+| `≡ Define` | Defines the selected words (see `MARGINALIA_DEFINE_CMD` below). |
+| `✗ Wrong` | Tells Claude the passage looks wrong or unclear and asks it to check and fix it. |
+| `⧉ Copy clean` | Copies the passage without list markers or button text. |
+
 Quoted text becomes a **pin**: a gray outline around the original passage with `❝1 pinned [✕ unpin]` in its border. Pins also show in a **pin tray** above the prompt, with `↥ go` (jump back to the passage), `▸ show` and `✕ unpin`. Removing the chip from the prompt unpins it too.
 
 Drawing the bar, pins and tray costs no tokens. Only sending a quote or one of the ask actions does.
