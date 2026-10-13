@@ -146,7 +146,9 @@ async function quote($: EngineInterface) {
     return
   }
   const role = sel.requestId ? roles.get(sel.requestId) : undefined
-  const pin: MarginaliaPin = { n: nextNumber([...(await read($, pending)), ...(await read($, present)).map(n => ({ n, text: '' }))]), text: sel.text, ...(sel.requestId ? { requestId: sel.requestId } : {}), ...(role ? { role } : {}) }
+  const inBox = await read($, present)
+  await setPending($, all => all.filter(p => inBox.includes(p.n)))
+  const pin: MarginaliaPin = { n: nextNumber(inBox.map(n => ({ n, text: '' }))), text: sel.text, ...(sel.requestId ? { requestId: sel.requestId } : {}), ...(role ? { role } : {}) }
   const chip = chipOf(pin)
   const filled = await $.prompt.fill({ text: `${chip} `, mode: 'insert', decorations: [{ start: 0, end: chip.length, color: 'suggestion', bold: true }] })
   if (!filled.isFilled) {
