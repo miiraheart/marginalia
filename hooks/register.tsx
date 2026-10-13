@@ -40,7 +40,7 @@ const COLORS: Record<MarginaliaAction, string> = {
 const roles = new Map<string, 'user' | 'assistant'>()
 const onScreen = new Map<string, boolean>()
 const seen = { dismissed: null as string | null, last: null as string | null, at: 0, steady: 0, skipUntil: 0, shifted: null as string | null }
-const ui = { root: '', rowDrawnFor: null as string | null, pinsDrawn: new Set<string>(), claimed: new Set<string>(), flash: null as number | null, more: false, open: new Set<number>(), version: 0, shown: 0, actions: '', inFlow: false, inFlowRows: 1, ghosts: [] as { row: string; text: string; rows: number }[] }
+const ui = { root: '', rowDrawnFor: null as string | null, pinsDrawn: new Set<string>(), claimed: new Set<string>(), flash: null as number | null, more: false, open: new Set<number>(), version: 0, shown: 0, actions: '', inFlow: false, inFlowRows: 1, inFlowSlot: '', ghosts: [] as { row: string; slot: string; rows: number }[] }
 
 function changed($: EngineInterface) {
   ui.version += 1
@@ -102,7 +102,7 @@ async function pollSelection($: EngineInterface) {
   const row = shown && sel?.requestId && onScreen.get(sel.requestId) !== false ? sel.requestId : null
   const oldRow = await read($, selectedRow)
   if (!shown) ui.ghosts = []
-  else if (old && oldRow && ui.inFlow && !ui.ghosts.some(g => g.row === oldRow && g.text === old)) ui.ghosts.push({ row: oldRow, text: old, rows: ui.inFlowRows })
+  else if (old && oldRow && ui.inFlow && !ui.ghosts.some(g => g.row === oldRow && g.slot === ui.inFlowSlot)) ui.ghosts.push({ row: oldRow, slot: ui.inFlowSlot, rows: ui.inFlowRows })
   await update($, selected, () => shown)
   await update($, selectedRow, () => row)
   ui.more = false
@@ -246,7 +246,7 @@ async function viewOf($: EngineInterface, requestId: string, role?: 'user' | 'as
   if (role) roles.set(requestId, role)
   const mine = (await visiblePins($)).filter(p => p.requestId === requestId)
   const selection = (await read($, selectedRow)) === requestId ? await read($, selected) : null
-  const ghosts = ui.ghosts.filter(g => g.row === requestId).map(g => ({ text: g.text, rows: g.rows }))
+  const ghosts = ui.ghosts.filter(g => g.row === requestId).map(g => ({ slot: g.slot, rows: g.rows }))
   if (!mine.length && !selection && !ghosts.length) return undefined
   if (isExternal) ui.claimed.add(requestId)
   if (selection) ui.rowDrawnFor = requestId
@@ -383,7 +383,7 @@ async function themed($: EngineInterface, surface: RenderSurface, text: string, 
   }
 }
 
-async function messageWithRows($: EngineInterface, el: ElementTable, surface: RenderSurface, text: string, columns: number, view: MarginaliaView, mark: RenderElement | null, isFullscreen: boolean): Promise<{ tree: RenderElement; hasBar: boolean; isInFlow: boolean }> {
+async function messageWithRows($: EngineInterface, el: ElementTable, surface: RenderSurface, text: string, columns: number, view: MarginaliaView, mark: RenderElement | null, isFullscreen: boolean): Promise<{ tree: RenderElement; hasBar: boolean; isInFlow: boolean; slot: string }> {
   const chunks = splitBlocks(text)
   const raws = chunks.map(c => c.raw)
   const end = chunks.length - 1
@@ -397,15 +397,18 @@ async function messageWithRows($: EngineInterface, el: ElementTable, surface: Re
     const isBeside = !raw.includes('\n') && raw.length + 4 + width <= columns
     return { at: i, isBelow: true, isBeside, isInFlow: !isBeside }
   }
-  const bar = !span ? null : span.last < end || isFullscreen ? placeOf(span.last) : span.first > 0 ? { at: span.first, isBelow: false, isBeside: false, isInFlow: false } : null
+  const ghostRows = new Map(view.ghosts.map(g => [g.slot, g.rows]))
+  const reuse = span && span.first > 0 && chunks[span.first]?.isTight && ghostRows.has(String(span.first - 1)) ? span.first - 1 : null
+  const bar = !span ? null : reuse !== null ? { at: reuse, isBelow: true, isBeside: false, isInFlow: true } : span.last < end || isFullscreen ? placeOf(span.last) : span.first > 0 ? { at: span.first, isBelow: false, isBeside: false, isInFlow: false } : null
   const { Box, Markdown } = el
   const drawn = await Promise.all(chunks.map(c => themed($, surface, c.raw, columns)))
   const gap = (i: number) => (i === 0 || chunks[i]!.isTight ? 0 : 1)
   const edgeOf = (g: { first: number; last: number }) => (bar?.isBelow ? g.last : g.first)
   const onGroup = (g: { first: number; last: number }) => !!bar && bar.at === edgeOf(g)
-  const ghostAt = new Map(view.ghosts.flatMap(g => {
-    const at = (spanOf(raws, g.text, true) ?? whole).last
-    return chunks[at + 1]?.isTight && !(bar?.isInFlow && bar.at === at) ? [[at, g.rows] as const] : []
+  const ghostAt = new Map([...ghostRows].flatMap(([slot, rows]) => {
+    const at = Number(slot)
+    const isGone = !/^\d+$/.test(slot) || !chunks[at + 1]?.isTight || (bar?.isInFlow && bar.at === at) || (span && at >= span.last)
+    return isGone ? [] : [[at, rows] as const]
   }))
   const ghostBox = (i: number) => (ghostAt.has(i) ? <Box key={`ghost${i}`} height={ghostAt.get(i)} /> : null)
   const barAt = () => (bar?.isInFlow ? <Box key="bar">{actionRow($, el, view)}</Box> : bar ? barOverlay($, el, view, bar.isBelow, bar.isBeside, bar.isBeside ? chunks[bar.at]!.raw.length + 2 : 0) : null)
@@ -437,6 +440,7 @@ async function messageWithRows($: EngineInterface, el: ElementTable, surface: Re
   return {
     hasBar: !!bar,
     isInFlow: !!bar?.isInFlow,
+    slot: bar?.isInFlow ? String(bar.at) : '',
     tree: (
       <Box flexDirection="row" marginTop={1}>
         {mark}
@@ -479,6 +483,7 @@ export const register: Register = on => {
   on('marginalia.placed', (_$, e) => {
     ui.inFlow = e.inFlow
     ui.inFlowRows = e.rows ?? 1
+    ui.inFlowSlot = e.slot ?? ''
     return { value: true }
   })
 
@@ -533,7 +538,7 @@ export const register: Register = on => {
     const el = $.ui.resolve(e)
     const mark = <el.Box width={2} flexShrink={0}><el.Text color="claude">{e.props.isFirstOfReply ? '●' : ' '}</el.Text></el.Box>
     const drawn = await messageWithRows($, el, e.surface, e.props.text, Math.max(20, (e.viewport?.columns ?? 100) - 4), view, mark, !!e.viewport?.isFullscreen)
-    if (view.selection) Object.assign(ui, { inFlow: drawn.isInFlow, inFlowRows: view.isMoreOpen ? 2 : 1 })
+    if (view.selection) Object.assign(ui, { inFlow: drawn.isInFlow, inFlowRows: view.isMoreOpen ? 2 : 1, inFlowSlot: drawn.slot })
     if (view.selection && !drawn.hasBar) noRoomForBar($, e.requestId)
     return drawn.tree
   })

@@ -4,7 +4,7 @@ export type MarginaliaPin = { n: number; text: string; requestId?: string; role?
 
 export type MarginaliaButton = { action: MarginaliaAction; label: string }
 
-export type MarginaliaGhost = { text: string; rows: number }
+export type MarginaliaGhost = { slot: string; rows: number }
 
 export type MarginaliaView = {
   selection: string | null
@@ -28,7 +28,7 @@ export type Marginalia = {
   view: (args: { requestId: string; role?: 'user' | 'assistant' }) => Promise<MarginaliaView | undefined>
   press: (args: MarginaliaPress) => Promise<boolean>
   version: () => Promise<number>
-  placed: (args: { inFlow: boolean; rows?: number }) => Promise<boolean>
+  placed: (args: { inFlow: boolean; rows?: number; slot?: string }) => Promise<boolean>
 }
 
 declare module 'claude-code' {
