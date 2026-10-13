@@ -1,6 +1,6 @@
 # Marginalia
 
-Select text in a Claude Code conversation and act on it right there: quote it into your prompt, pin it, ask about it, turn it into a task, or keep it for later.
+Select text in a Claude Code conversation and act on it right there: quote it into your prompt, ask about it, turn it into a task, or keep it for later.
 
 ```
   - Cats sleep 12 to 16 hours a day, saving energy for short bursts of hunting.
@@ -39,9 +39,9 @@ Click `⋯` and the other actions open on a second line:
 | `✗ Wrong` | Tells Claude the passage looks wrong or unclear and asks it to check and fix it. |
 | `⧉ Copy clean` | Copies the passage without list markers or button text. |
 
-Quoted text becomes a **pin**: a gray outline around the original passage with `❝1 pinned [✕ unpin]` in its border. Pins also show in a **pin tray** above the prompt, with `↥ go` (jump back to the passage), `▸ show` and `✕ unpin`. Removing the chip from the prompt unpins it too.
+Quoted text stays **outlined** in gray in the conversation, with `❝1 quoted [✕ unquote]` in its border. Every quote also shows in a **quote tray** above the prompt, with `↥ go` (jump back to the passage), `▸ show` and `✕ unquote`. Removing the chip from the prompt unquotes it too.
 
-Drawing the bar, pins and tray costs no tokens. Only sending a quote or one of the ask actions does.
+Drawing the bar, outlines and tray costs no tokens. Only sending a quote or one of the ask actions does.
 
 ## Install
 
@@ -99,9 +99,9 @@ Terminal selections are tied to screen rows, so anything that moves text while y
 
 ## For theme mods
 
-Marginalia works on its own. A theme mod that draws assistant messages itself can draw the bar and pins in its own style through `$.marginalia`:
+Marginalia works on its own. A theme mod that draws assistant messages itself can draw the bar and quote outlines in its own style through `$.marginalia`:
 
-- `view({ requestId, role })` returns what to draw for a message: the selection, its pins, the buttons, and blank rows to keep.
+- `view({ requestId, role })` returns what to draw for a message: the selection, its quotes (`pins` in the types), the buttons, and blank rows to keep.
 - `press(args)` runs a button.
 - `version()` changes whenever something should be redrawn.
 - `placed({ inFlow, rows })` tells Marginalia whether the bar was drawn as its own row.
@@ -111,7 +111,7 @@ The types are in [`types/index.d.ts`](types/index.d.ts).
 ## Known limits
 
 - Claude Code's fullscreen mode only: in the classic mode Claude Code reports no selection, so the bar never appears.
-- When Marginalia runs alone (no theme mod drawing the messages), it draws a message itself while that message has a bar or a pin. Its spacing can then differ by a line from Claude Code's own drawing.
+- When Marginalia runs alone (no theme mod drawing the messages), it draws a message itself while that message has a bar or a quote. Its spacing can then differ by a line from Claude Code's own drawing.
 
 ## License
 

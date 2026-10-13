@@ -1,7 +1,7 @@
 {
   "name": "marginalia",
   "version": "0.1.0",
-  "description": "Select text in the conversation, then quote it into your prompt, pin it, ask about it, turn it into a task or keep it. Theme mods can draw its bar in their own style.",
+  "description": "Select text in the conversation, then quote it into your prompt (it stays outlined), ask about it, turn it into a task or keep it. Theme mods can draw its bar in their own style.",
   "author": {
     "name": "Miira",
     "url": "https://github.com/miiraheart"

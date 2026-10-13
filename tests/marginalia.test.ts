@@ -94,6 +94,7 @@ test('own bar fragments are cut from a selection', () => {
   expect(withoutOwnRows('the cat sat  [ ❝ Quote ]  [ ♥ Remember ]  [ + Task ]  [ ⋯ ]  3 words selected')).toBe('the cat sat')
   expect(withoutOwnRows('a line\n[ ⋯ ]  [ ? Explain ]\n12 words selected\nnext')).toBe('a line\nnext')
   expect(withoutOwnRows('[❝1 kept chip] text')).toBe('[❝1 kept chip] text')
+  expect(withoutOwnRows('❝2 quoted\nthe passage\n[ ✕ unquote ]')).toBe('the passage')
 })
 
 test('a selection loses its list markers', () => {

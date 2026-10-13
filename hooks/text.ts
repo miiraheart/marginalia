@@ -104,7 +104,7 @@ export const defineWords = (text: string): string[] =>
   cleanSelection(text).replace(/[«»"“”.,;:!?()]/g, ' ').split(/\s+/).filter(Boolean).slice(0, 4)
 
 const BOX_ONLY = /^[\s─│╭╮╰╯┌┐└┘├┤┬┴┼]+$/
-const OWN_LINE = /^\[ ❝ Quote \]|\bwords? selected$|^❝\d+( pinned|\s+")|\[ ✕ unpin \]$/
+const OWN_LINE = /^\[ ❝ Quote \]|\bwords? selected$|^❝\d+( pinned| quoted|\s+")|\[ ✕ un(pin|quote) \]$/
 const BAR_TAIL = /\s*\[ [❝≡♥+].*$/
 const BAR_ONLY = /^(?:\[ [^\]]*\]|⋯|\d+ words? selected|\s)+$/
 const LIST_MARKER = /^(?:[•◦*+-]|\d+\.)\s+/

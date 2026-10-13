@@ -305,7 +305,7 @@ function pinRow($: EngineInterface, el: ElementTable, p: MarginaliaPin, isOpen: 
         <Text dimColor>{`"${preview(p.text)}" from ${sourceOf(p)}`}</Text>
         {p.requestId ? <Button key={`go${p.n}`} label="↥ go" onPress={() => void goTo($, p.requestId!, p.n)} /> : null}
         <Button key={`show${p.n}`} label={isOpen ? '▾ hide' : '▸ show'} onPress={() => void press($, { toggle: p.n })} />
-        <Button key={`unpin${p.n}`} label="✕ unpin" onPress={() => void press($, { unpin: p.n })} />
+        <Button key={`unpin${p.n}`} label="✕ unquote" onPress={() => void press($, { unpin: p.n })} />
       </Box>
       {isOpen ? (
         <Box backgroundColor={DARK} paddingX={1}>
@@ -335,8 +335,8 @@ function barOverlay($: EngineInterface, el: ElementTable, view: MarginaliaView, 
 function pinLegend($: EngineInterface, el: ElementTable, pins: MarginaliaPin[], flash: number | null): RenderElement[] {
   const { Button, Text } = el
   return pins.flatMap(p => [
-    <Text key={`pin${p.n}`} color={p.n === flash ? 'warning' : 'suggestion'} bold>{` ❝${p.n} pinned `}</Text>,
-    <Button key={`unpin${p.n}`} label="✕ unpin" onPress={() => void press($, { unpin: p.n })} />,
+    <Text key={`pin${p.n}`} color={p.n === flash ? 'warning' : 'suggestion'} bold>{` ❝${p.n} quoted `}</Text>,
+    <Button key={`unpin${p.n}`} label="✕ unquote" onPress={() => void press($, { unpin: p.n })} />,
     <Text key={`end${p.n}`}> </Text>,
   ])
 }
