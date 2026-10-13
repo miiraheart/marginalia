@@ -55,7 +55,7 @@ Requires a Claude Code version with mods. Tested on 2.1.296.
 /plugin install marginalia@marginalia
 ```
 
-Selection only works in **fullscreen** mode.
+Selection needs Claude Code's **fullscreen mode**: the transcript view with "Jump to bottom" and mouse selection. That is a Claude Code setting, not the size of your terminal window.
 
 To update:
 
@@ -76,7 +76,7 @@ Both are environment variables. Set them in your shell, or per project in `.clau
 | Variable | Effect |
 |---|---|
 | `MARGINALIA_ACTIONS` | Buttons on the bar itself, comma separated, in order. Default `quote,remember,task`. The rest go under `⋯`. Names: `quote`, `remember`, `task`, `explain`, `deeper`, `redo`, `anki`, `define`, `wrong`, `copy`. |
-| `MARGINALIA_DEFINE_CMD` | A command run with the selected words for `Define` (for example a dictionary lookup). Its output shows as a toast. Without it, Define asks Claude. |
+| `MARGINALIA_DEFINE_CMD` | A command run with the selected words for `Define` (for example a dictionary lookup). Its output shows as a toast. Without it, or when the command fails or takes more than 20 seconds, Define asks Claude. |
 
 A language-learning project might use:
 
@@ -110,8 +110,8 @@ The types are in [`types/index.d.ts`](types/index.d.ts).
 
 ## Known limits
 
-- Fullscreen only: outside fullscreen, Claude Code reports no selection.
-- Without a theme mod, Marginalia redraws a message while it has a bar or a pin, and its spacing can differ slightly from the default rendering.
+- Claude Code's fullscreen mode only: in the classic mode Claude Code reports no selection, so the bar never appears.
+- When Marginalia runs alone (no theme mod drawing the messages), it draws a message itself while that message has a bar or a pin. Its spacing can then differ by a line from Claude Code's own drawing.
 
 ## License
 
