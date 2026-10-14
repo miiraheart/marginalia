@@ -45,6 +45,7 @@ test('/q quotes the selection as a chip, and submit hands the model the full tex
   let draft = ''
   let seen: readonly string[] | undefined
   on('ui.selection', () => ({ value: { text: pin.text } }))
+  on('prompt.read', () => ({ value: { text: draft, cursor: draft.length } }))
   on('prompt.fill', (_, e) => {
     draft = e.mode === 'insert' ? draft + e.text : e.text
     return { isFilled: true, text: draft, cursor: draft.length }
@@ -62,6 +63,26 @@ test('/q quotes the selection as a chip, and submit hands the model the full tex
   await $.prompt.submit({ text: 'and again', wait: false, origin: { kind: 'composer' } })
   const after: readonly string[] = (seen as readonly string[] | undefined) ?? []
   expect(after.some(c => c.includes('<quoted_text'))).toBe(false)
+})
+
+test('a quote after the earlier chips were deleted is numbered 1 again', async ($, on) => {
+  mock.env(on, {})
+  mock.clock(on, { now: 1_000_000 })
+  let draft = ''
+  on('ui.selection', () => ({ value: { text: pin.text } }))
+  on('prompt.read', () => ({ value: { text: draft, cursor: draft.length } }))
+  on('prompt.fill', (_, e) => {
+    draft = e.mode === 'insert' ? draft + e.text : e.text
+    return { isFilled: true, text: draft, cursor: draft.length }
+  })
+  on('command.run', () => ({}))
+  const quote = () => $.command.run({ command: 'q', args: '', origin: { kind: 'composer' }, presentation: { isFullscreen: true, columns: 120 } })
+  await quote()
+  await quote()
+  expect(chipsIn(draft).map(c => c.n)).toEqual([1, 2])
+  draft = ''
+  await quote()
+  expect(chipsIn(draft).map(c => c.n)).toEqual([1])
 })
 
 test('the bar shows Quote, Remember and Task unless MARGINALIA_ACTIONS picks others', () => {

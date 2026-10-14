@@ -146,7 +146,8 @@ async function quote($: EngineInterface) {
     return
   }
   const role = sel.requestId ? roles.get(sel.requestId) : undefined
-  const inBox = await read($, present)
+  const inBox = chipsIn((await $.prompt.read()).text).map(c => c.n)
+  await update($, present, () => inBox)
   await setPending($, all => all.filter(p => inBox.includes(p.n)))
   const pin: MarginaliaPin = { n: nextNumber(inBox.map(n => ({ n, text: '' }))), text: sel.text, ...(sel.requestId ? { requestId: sel.requestId } : {}), ...(role ? { role } : {}) }
   const chip = chipOf(pin)
@@ -168,6 +169,7 @@ async function expectShift($: EngineInterface) {
 async function unpin($: EngineInterface, n: number) {
   await expectShift($)
   ui.open.delete(n)
+  await update($, present, all => all.filter(m => m !== n))
   await setPending($, all => all.filter(p => p.n !== n))
   await removeChip($, n)
 }
