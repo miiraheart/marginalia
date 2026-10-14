@@ -73,7 +73,7 @@ Both are environment variables. Set them in your shell, or per project in `.clau
 | `MARGINALIA_ACTIONS` | Buttons on the bar itself, comma separated, in order. Default `quote,remember,task`. The rest go under `⋯`. Names: `quote`, `remember`, `task`, `explain`, `deeper`, `redo`, `anki`, `define`, `wrong`, `copy`. |
 | `MARGINALIA_DEFINE_CMD` | A command run with the selected words for `Define` (for example a dictionary lookup). Its output shows as a toast. Without it, or when the command fails or takes more than 20 seconds, Define asks Claude. |
 
-A language-learning project might use:
+Example: to have `≡ Define` and `▤ Anki` on the bar instead of `♥ Remember` (handy when you learn a language), put this in that project's `.claude/settings.json`. The bar then shows `[ ❝ Quote ] [ ≡ Define ] [ ▤ Anki ] [ + Task ]`, and Remember moves under `⋯`.
 
 ```json
 { "env": { "MARGINALIA_ACTIONS": "quote,define,anki,task" } }
