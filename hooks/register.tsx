@@ -4,6 +4,7 @@ import type { ElementTable, EngineInterface, PromptOrigin, Register, RenderEleme
 import type { MarginaliaAction, MarginaliaPin, MarginaliaPress, MarginaliaView } from '../types'
 import { ACTION_LABELS, askPrompt, chipOf, chipsIn, cleanSelection, contextBlock, defineWords, moreActions, nextNumber, normalized, preview, rememberPrompt, shortActions, sourceOf, taskTitle, withoutChip, withoutOwnRows, wordCount } from './text'
 import { mergeSpans, spanOf, splitBlocks } from './blocks'
+import { candidates, navMap, renderIdsOf, type NavMap, type NavRole } from './nav'
 import './themes'
 
 const pending = atom({ plugin: 'marginalia', key: 'pending' } as const, [])
@@ -15,6 +16,12 @@ const POLL_MS = 400
 const SETTLE_MS = 1200
 const ROW_WAIT_MS = 1500
 const SHIFT_MS = 1000
+const NAV_KEYS: Record<string, { role: NavRole; dir: 1 | -1 }> = {
+  'me-up': { role: 'user', dir: -1 },
+  'me-down': { role: 'user', dir: 1 },
+  'reply-up': { role: 'assistant', dir: -1 },
+  'reply-down': { role: 'assistant', dir: 1 },
+}
 const CLEAR_MS = 15000
 const DARK = '#2b2e3b'
 
@@ -39,6 +46,8 @@ const COLORS: Record<MarginaliaAction, string> = {
 
 const roles = new Map<string, 'user' | 'assistant'>()
 const onScreen = new Map<string, boolean>()
+const nav = { path: '', at: null as number | null, key: '', map: null as NavMap | null }
+const SHRINK = String.raw`LC_ALL=C sed -E 's/"(([^"\\]|\\.){40})([^"\\]|\\.){200,}"/"\1"/g' "$1" | tail -c 3900000`
 const seen = { dismissed: null as string | null, last: null as string | null, at: 0, steady: 0, skipUntil: 0, shifted: null as string | null }
 const ui = { root: '', rowDrawnFor: null as string | null, pinsDrawn: new Set<string>(), claimed: new Set<string>(), flash: null as number | null, more: false, open: new Set<number>(), version: 0, shown: 0, actions: '', inFlow: false, inFlowRows: 1, inFlowSlot: '', ghosts: [] as { row: string; slot: string; rows: number }[] }
 
@@ -132,7 +141,7 @@ async function fallBackToBar($: EngineInterface, row: string, isForced = false) 
   changed($)
 }
 
-function noteScreen($: EngineInterface, requestId: string, at: object | null | undefined) {
+function noteScreen($: EngineInterface, requestId: string, at: { first: number } | null | undefined) {
   if (at === undefined) return
   const was = onScreen.get(requestId)
   onScreen.set(requestId, at !== null)
@@ -284,6 +293,57 @@ function actionRow($: EngineInterface, el: ElementTable, view: MarginaliaView): 
       {view.isMoreOpen ? <Box flexDirection="row" columnGap={1}>{view.more.map(button)}</Box> : null}
     </Box>
   )
+}
+
+async function transcriptOf($: EngineInterface): Promise<string> {
+  if (nav.path) return nav.path
+  const id = await $.session.id().catch(() => '')
+  const home = await $.env.get('HOME').catch(() => undefined)
+  const config = (await $.env.get('CLAUDE_CONFIG_DIR').catch(() => undefined)) ?? `${home}/.claude`
+  ui.root ||= await $.session.root().catch(() => '')
+  return id && home && ui.root ? `${config}/projects/${ui.root.replace(/[^A-Za-z0-9]/g, '-')}/${id}.jsonl` : ''
+}
+
+async function navMapOf($: EngineInterface, path: string): Promise<NavMap | null> {
+  const stat = await $.fs.stat(path).catch(() => undefined)
+  if (!stat) return null
+  const key = `${path}:${stat.size}:${stat.mtimeMs}`
+  if (nav.key === key && nav.map) return nav.map
+  const ran = await $.process.run(['sh', '-c', SHRINK, 'sh', path], { timeoutMs: 20000 }).catch(() => undefined)
+  const read = ran?.exitCode === 0 && ran.stdout ? ran.stdout : await $.fs.read(path).catch(() => undefined)
+  if (typeof read !== 'string') return null
+  Object.assign(nav, { key, map: navMap(read) })
+  return nav.map
+}
+
+async function warmNav($: EngineInterface) {
+  const path = await transcriptOf($)
+  if (path) await navMapOf($, path)
+}
+
+async function jump($: EngineInterface, role: NavRole, dir: 1 | -1) {
+  const map = nav.map ?? (await warmNav($), nav.map)
+  if (!map) {
+    $.ui.toast(`Can't read this conversation's history${nav.path ? ` (${nav.path})` : ''}`)
+    return
+  }
+  let deny = ''
+  for (const target of candidates(map, role, dir, nav.at).slice(0, 30)) {
+    for (const requestId of renderIdsOf(target.id)) {
+      const moved = await $.ui.scroll({ to: { requestId }, block: 'start' })
+      if (moved.deny) {
+        deny ||= moved.deny
+        continue
+      }
+      await $.ui.scroll({ to: { requestId }, block: 'start' })
+      nav.at = target.at
+      void warmNav($)
+      return
+    }
+  }
+  void warmNav($)
+  const none = `No ${dir === 1 ? 'later' : 'earlier'} ${role === 'user' ? 'message of yours' : 'reply'}`
+  $.ui.toast(deny ? `${none} (${deny})` : none)
 }
 
 async function goTo($: EngineInterface, requestId: string, n: number) {
@@ -497,6 +557,48 @@ export const register: Register = on => {
     await $.command.register({ name: 'remember-this', description: 'Ask Claude to remember the selected text' }).catch(() => undefined)
     $.clock.every(POLL_MS, () => void pollSelection($))
     return started
+  })
+
+  on('classic.SessionStart', async ($, e, next) => {
+    nav.path = e.transcript_path || nav.path
+    void warmNav($)
+    return next(e)
+  })
+
+  on('classic.UserPromptSubmit', async (_$, e, next) => {
+    nav.path = e.transcript_path || nav.path
+    nav.at = null
+    return next(e)
+  })
+
+  on('classic.Stop', async ($, e, next) => {
+    nav.path = e.transcript_path || nav.path
+    void warmNav($)
+    return next(e)
+  })
+
+  on('ui.press', { plugin: 'marginalia' }, async ($, e, next) => {
+    const to = NAV_KEYS[e.element]
+    if (!to) return next(e)
+    await jump($, to.role, to.dir)
+    return { element: e.element }
+  })
+
+  on('ui.render', { component: 'SessionMode' }, async ($, e, next) => {
+    if (e.surface === 'terminal' && e.viewport?.isFullscreen !== true) return next(e)
+    const { Box, Button, Text } = $.ui.resolve(e)
+    const below = await next(e)
+    return (
+      <Box flexDirection="row" alignItems="center" gap={1}>
+        <Text dimColor>me</Text>
+        <Button key="me-up" label="▲" onPress={() => undefined} />
+        <Button key="me-down" label="▼" onPress={() => undefined} />
+        <Text dimColor>reply</Text>
+        <Button key="reply-up" label="▲" onPress={() => undefined} />
+        <Button key="reply-down" label="▼" onPress={() => undefined} />
+        {below}
+      </Box>
+    )
   })
 
   on('command.run', { command: 'q' }, async $ => {

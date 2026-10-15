@@ -36,6 +36,10 @@ Click `⋯` and the other actions open on a second line:
 
 Quoted text stays **outlined** in gray in the conversation, with `❝1 quoted [✕ unquote]` in its border. Every quote also shows in a **quote tray** above the prompt, with `↥ go` (jump back to the passage), `▸ show` and `✕ unquote`. Removing the chip from the prompt unquotes it too.
 
+### Jump between messages
+
+The footer next to `Progress` holds `me ▲ ▼` and `reply ▲ ▼`. `me` steps through the messages you sent, including ones sent while Claude was working. `reply` steps through Claude's replies, landing on the start of each one. `▲` goes to older ones, `▼` to newer ones, and each jump puts the message at the top of the screen. Sending a new message starts over from the bottom.
+
 Drawing the bar, outlines and tray costs no tokens. Only sending a quote or one of the ask actions does.
 
 ## Install
@@ -107,6 +111,7 @@ The types are in [`types/index.d.ts`](types/index.d.ts).
 ## Known limits
 
 - Claude Code's fullscreen mode only: in the classic mode Claude Code reports no selection, so the bar never appears.
+- The jump buttons follow their own last jump: after scrolling by hand, the next click continues from the message it last jumped to. The last few messages of a conversation stop as high as they can, since nothing below them can scroll up.
 - When Marginalia runs alone (no theme mod drawing the messages), it draws a message itself while that message has a bar or a quote. Its spacing can then differ by a line from Claude Code's own drawing.
 
 ## License
